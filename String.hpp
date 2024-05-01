@@ -33,7 +33,11 @@ using std::runtime_error;
 using std::out_of_range;
 using std::boolalpha;
 
-// Custom string class since string is giving mem leaks for some reason...
+/**
+ * @brief Custom String class since std::string gave memory leaks while processing strings with spaces.
+ * @brief May add more to this depending on what other string methods are needed.
+ * 
+ */
 class String{
 private:
     char* _c_str;
@@ -52,11 +56,14 @@ public:
     int capacity();
     char at(int);
 
+    // Operator overloads
     String& operator=(const String&);
     String& operator+=(const String&);
     String& operator+=(const char*);
     String& operator+=(const char&);
 
+
+    // String methods
     String substr(int, int = -1);
 
 
@@ -65,6 +72,7 @@ public:
     void deallocate();
 
 
+    // Friend function to overload the String class's ability to directly output to stream
     friend ostream& operator<<(ostream&, const String&);
 };
 

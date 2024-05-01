@@ -256,10 +256,8 @@ string parseJsonKey(string& json){
         throw InvalidJsonFormatException("Json format is invalid.  There is no \": \" after the key was read.");
     }
     pos++;
-    if(json.at(pos) == ' '){
-        while(json.at(pos) == ' ')
-            pos++;
-    }
+    while(json.at(pos) == ' ')
+        pos++;
     json = json.substr(pos);
     return key;
 }
