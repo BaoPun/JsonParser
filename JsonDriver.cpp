@@ -68,6 +68,7 @@ int main(){
     string json;
     getline(ss, json);
     //cout << "Json contents: " << json << endl << endl;
+    bool is_complete = true;
     try{
         // Either starts as an object or as a list
         if(json.front() == '{')
@@ -82,10 +83,12 @@ int main(){
     }
     catch(InvalidJsonFormatException e){
         cout << e.what() << endl;
+        is_complete = false;
     }
 
     // What does the json look like?
-    cout << *Json << endl;
+    if(is_complete)
+        cout << *Json << endl;
     
     // Prior to closing the program, deallocate the Json
     delete Json;
@@ -161,7 +164,7 @@ string parseJsonObject(JsonObject*& Json, string json, stack<char>& symbols){
     // Ignore all leading spaces
     trimLeadingTrailingSpaces(json);
 
-    if(symbols.top() != '{' || json.at(pos) != '}')
+    if(symbols.top() != '{'/* || json.at(pos) != '}'*/)
         throw InvalidJsonFormatException("Json format is invalid.  The found symbol at the top is not {.");
     symbols.pop();
     json = json.substr(1);
@@ -198,6 +201,8 @@ string parseJsonList(JsonObject*& Json, string json, string key, stack<char>& sy
             else if(json.at(pos) == '['){
                 json = parseJsonList(Json, json, key, symbols);
             }
+            else if(json.at(pos) == ']')
+                break;
             else
                 json = parseJsonValue(Json, key, json, true);
             is_comma = (json.at(0) == ',');
@@ -347,11 +352,27 @@ string parseJsonValue(JsonObject*& Json, const string& key, string& json, bool f
             else
                 throw InvalidJsonFormatException("Json format is invalid.  The boolean false was not processable.");
         }
+        else if(json.at(pos) == 'n'){
+            if(is_negative)
+                throw InvalidJsonFormatException("Json format is invalid.  There shouldn't be a negative sign.");
+            if(pos + 3 >= json.length())
+                throw InvalidJsonFormatException("Json format is invalid.  Cannot fully extract the value null.");
+            if(json.at(pos + 1) == 'u' && json.at(pos + 2) == 'l' && json.at(pos + 3) == 'l'){
+                pos += 4;
+                if(!fromList)
+                    Json->add_node(new JsonStringValue(key, "null"));
+                else
+                    Json->add_to_node_list(key, new JsonStringValue(key, "null"));
+                json = json.substr(pos);
+            }
+            else
+                throw InvalidJsonFormatException("Json format is invalid.  The value null was not processable.");
+        }
     }
 
     // Any other processing makes this json invalid.
     else
-        throw InvalidJsonFormatException("Json format is invalid.  An unexpected character was spotted.");
+        throw InvalidJsonFormatException("Json format is invalid.  An unexpected character was spotted: ");
 
     trimLeadingTrailingSpaces(json);
     return json;
